@@ -8,7 +8,7 @@
   imports = [ ./rk3588-base.nix ];
   options.hardware.cm3588.kernel = lib.mkOption {
     type = lib.types.strMatching "(armbian-vendor|armbian-current|friendlyarm)";
-    default = "armbian-current";
+    default = "armbian-vendor";
   };
 
   config =
@@ -45,9 +45,8 @@
         ];
       };
 
-      enableRedistributableFirmware = lib.mkDefault true;
-
       hardware = {
+        enableRedistributableFirmware = lib.mkDefault true;
         deviceTree = {
           enable = true;
           name =
@@ -56,14 +55,18 @@
       };
 
       # From https://github.com/armbian/build/blob/main/config/boards/nanopc-cm3588-nas.csc
-      services.udev.extraRules = lib.optional isArmbian ''
-        SUBSYSTEM=="net", ACTION=="add", KERNELS=="0004:41:00.0", NAME:="eth0"
+      services.udev.extraRules =
+        if isArmbian then
+          ''
+            SUBSYSTEM=="net", ACTION=="add", KERNELS=="0004:41:00.0", NAME:="eth0"
 
-        SUBSYSTEM=="sound", ENV{ID_PATH}=="platform-hdmi0-sound", ENV{SOUND_DESCRIPTION}="HDMI-0 Audio Out"
-        SUBSYSTEM=="sound", ENV{ID_PATH}=="platform-hdmi1-sound", ENV{SOUND_DESCRIPTION}="HDMI-1 Audio Out"
-        SUBSYSTEM=="sound", ENV{ID_PATH}=="platform-dp0-sound", ENV{SOUND_DESCRIPTION}="DisplayPort-Over-USB Audio Out"
-        SUBSYSTEM=="sound", ENV{ID_PATH}=="platform-rt5616-sound", ENV{SOUND_DESCRIPTION}="Headphone Out/Mic In"
-        SUBSYSTEM=="sound", ENV{ID_PATH}=="platform-hdmiin-sound", ENV{SOUND_DESCRIPTION}="HDMI-IN Audio In"
-      '';
+            SUBSYSTEM=="sound", ENV{ID_PATH}=="platform-hdmi0-sound", ENV{SOUND_DESCRIPTION}="HDMI-0 Audio Out"
+            SUBSYSTEM=="sound", ENV{ID_PATH}=="platform-hdmi1-sound", ENV{SOUND_DESCRIPTION}="HDMI-1 Audio Out"
+            SUBSYSTEM=="sound", ENV{ID_PATH}=="platform-dp0-sound", ENV{SOUND_DESCRIPTION}="DisplayPort-Over-USB Audio Out"
+            SUBSYSTEM=="sound", ENV{ID_PATH}=="platform-rt5616-sound", ENV{SOUND_DESCRIPTION}="Headphone Out/Mic In"
+            SUBSYSTEM=="sound", ENV{ID_PATH}=="platform-hdmiin-sound", ENV{SOUND_DESCRIPTION}="HDMI-IN Audio In"
+          ''
+        else
+          "";
     };
 }
